@@ -38,7 +38,12 @@ class SourceType(StrEnum):
 
 def parse_requirements_file(
     req_file: str | pathlib.Path,
+    include_empty_lines: bool = False,
 ) -> typing.Iterable[str]:
+    """Parse requirements file and return useful lines.
+    Optionally include empty strings for non-useful lines to preserve line count
+    for lint-requirements command.
+    """
     logger.debug("reading requirements file %s", req_file)
     lines = []
     with open_file_or_url(req_file) as f:
@@ -46,7 +51,7 @@ def parse_requirements_file(
             useful, _, _ = line.partition("#")
             useful = useful.strip()
             logger.debug("line %r useful %r", line, useful)
-            if not useful:
+            if not useful and not include_empty_lines:
                 continue
             lines.append(useful)
     return lines

@@ -41,6 +41,20 @@ def test_get_requirements_file_with_comments_and_blanks(tmp_path: pathlib.Path):
     assert requirements == ["a", "b", "c"]
 
 
+def test_parse_requirements_file_include_empty_lines(tmp_path: pathlib.Path):
+    req_file = tmp_path / "requirements.txt"
+    content = "a\n\n# ignore\nb\nc\n"
+    req_file.write_text(content)
+
+    # Test with include_empty_lines=True - should preserve line count
+    requirements_with_empty = list(
+        parse_requirements_file(req_file, include_empty_lines=True)
+    )
+    expected_line_count = len(content.splitlines())
+    assert len(requirements_with_empty) == expected_line_count
+    assert requirements_with_empty == ["a", "", "", "b", "c"]
+
+
 def test_req_type_flag():
     assert not RequirementType.INSTALL.is_build_requirement
     assert not RequirementType.TOP_LEVEL.is_build_requirement

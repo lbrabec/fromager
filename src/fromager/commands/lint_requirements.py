@@ -33,9 +33,13 @@ def lint_requirements(input_files_path: list[pathlib.Path]) -> None:
     flag = True
 
     for path in input_files_path:
-        parsed_lines = requirements_file.parse_requirements_file(path)
+        parsed_lines = requirements_file.parse_requirements_file(
+            path, include_empty_lines=True
+        )
         unique_entries: dict[str, Requirement] = {}
-        for line in parsed_lines:
+        for line_number, line in enumerate(parsed_lines, 1):
+            if not line:  # Skip empty lines (comments, blank lines)
+                continue
             try:
                 requirement = Requirement(line)
                 if requirement.name in unique_entries:
@@ -48,7 +52,7 @@ def lint_requirements(input_files_path: list[pathlib.Path]) -> None:
                         "Constraints files cannot contain extra dependencies"
                     )
             except InvalidRequirement as err:
-                logger.error(f"{path}: {line}: {err}")
+                logger.error(f"{path}:{line_number}: {line}: {err}")
                 flag = False
 
     if not flag:
